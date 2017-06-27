@@ -136,6 +136,7 @@ def reset(request, query = ''):
             if postHandler.checkKey('reset3'):
                 if not ('reset' in request.session and request.session['reset']):
                     dprint('Invalid reset operation.')
+                    request.session.flush()
                     return HttpResponseNotAllowed(ERR.INVALID_OPERATION)
                 if 'newStaticSalt' in request.session:
                     if postHandler.json['userId'] != request.session['userId']:
@@ -152,6 +153,7 @@ def reset(request, query = ''):
                     return HttpResponse('New password set. Require re-login.')
                 else:
                     dprint('Attempt to reset password without a new static salt.')
+                    request.session.flush()
                     return HttpResponseBadRequest(ERR.SESSION_EXPIRED)
             elif postHandler.checkKey('reset2'):
                 if 'dynamicSalt' in request.session:  # Start old (current) password validating
@@ -164,7 +166,7 @@ def reset(request, query = ''):
                                               request.session['dynamicSalt']):  # Check password here
                             newStaticSalt = User.mksalt()
                             request.session['newStaticSalt'] = newStaticSalt
-                            res = HttpResponse('{userId:"%d",' % user.id + 'newStaticSalt:"' + newStaticSalt + '"}')
+                            res = HttpResponse('{userId:%d,' % user.id + 'newStaticSalt:"' + newStaticSalt + '"}')
                             dprint('Old password confirmed. User id: %d. ' % user.id + 'Username: ' + user.username)
                             request.session['reset'] = True
                             request.session.set_expiry(0)
@@ -174,9 +176,11 @@ def reset(request, query = ''):
                         return res
                     except User.DoesNotExist:
                         dprint('User not found.')
+                        request.session.flush()
                         return HttpResponseBadRequest(ERR.USERNAME_NOT_MATCH)
                 else:
                     dprint('Attempt to verify old password without generating dynamicSalt.')
+                    request.session.flush()
                     return HttpResponseBadRequest(ERR.SESSION_EXPIRED)
             elif postHandler.checkKey('reset1'):
                 dynamicSalt = User.mksalt()
