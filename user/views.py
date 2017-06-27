@@ -1,10 +1,10 @@
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotAllowed
 from django.conf import settings
 from django.shortcuts import render
-from datetime import timedelta
+from django.utils import timezone
 
 from .lib.PostHandler import PostHandler, ERR, dprint
-from .models import User
+from .models import User, UserInfo, Avatar
 
 debug = settings.DEBUG
 
@@ -33,7 +33,35 @@ def state(request):
     return HttpResponse(res)
 
 def register(request, query = ''):
-    return HttpResponse('<h1>Register</h1>')
+    if request.method == 'GET' or request.method == 'get': # Generate static salt
+        staticSalt = User.mksalt()
+        request.session['staticSalt'] = staticSalt
+        dprint('Register stage 1: generate staticSalt.')
+        return HttpResponse(staticSalt)
+    else:
+        postHandler = PostHandler(request)
+        if postHandler.getData('json'):
+            dprint('Post string: ' + postHandler.str)
+            if postHandler.checkKey('register'):
+                if 'staticSalt' in request.session: # Start register
+                    try:
+                        user = User.objects.get(username=postHandler.json['username'])
+                        dprint('Register error: username clashed.')
+                        return HttpResponseNotAllowed(ERR.USERNAME_CLASH)
+                    except User.DoesNotExist:
+                        user = User.newUser(postHandler.json['username'], postHandler.json['password'], request.session['staticSalt'])
+                        request.session['userId'] = user.id
+                        request.session['loginState'] = True
+                        request.session.set_expiry(30 * 24 * 3600)
+                        dprint('User created. User id: %d. ' % user.id + 'Username: ' + user.username)
+                        return HttpResponse('Registered. Welcome, ' + user.username)
+                else:
+                    dprint('Attempt to register without a staticSalt on server.')
+                    return HttpResponseBadRequest(ERR.SESSION_EXPIRED)
+            else:
+                return HttpResponseBadRequest(ERR.MISSING_DATA)
+        else:
+            return HttpResponseBadRequest(ERR.MISSING_JSON)
 
 @loginStateMaintainer
 def login(request, query = ''):
@@ -52,9 +80,11 @@ def login(request, query = ''):
                         user = User.objects.get(username=postHandler.json['username'])
                         if user.checkPassword(postHandler.json['password'], request.session['dynamicSalt']): # Check password here
                             res = HttpResponse('Logged in.')
+                            dprint('Logged in. User id: %d. ' % user.id + 'Username: ' + user.username)
+                            request.session['userId'] = user.id
                             request.session['loginState'] = True
                             if postHandler.json['remember']:
-                                request.session.set_expiry(timedelta(days=30))
+                                request.session.set_expiry(30 * 24 * 3600)
                             else:
                                 request.session.set_expiry(0)
                         else:
@@ -72,8 +102,7 @@ def login(request, query = ''):
                 request.session['dynamicSalt'] = dynamicSalt
                 staticSalt = ''
                 try:
-                    user = User.objects.get(username=
-                                            postHandler.json['username'])
+                    user = User.objects.get(username=postHandler.json['username'])
                     dprint('User found.')
                     staticSalt = user.password_salt
                 except User.DoesNotExist: # Generate fake static salt
@@ -81,11 +110,19 @@ def login(request, query = ''):
                     staticSalt = User.mksalt()
                 return HttpResponse('{"staticSalt":"' + staticSalt + '","dynamicSalt":"' + dynamicSalt + '"}')
             else:
-                res = HttpResponseBadRequest(ERR.MISSING_DATA)
-                return res
+                return HttpResponseBadRequest(ERR.MISSING_DATA)
         else:
-            res =  HttpResponseBadRequest(ERR.MISSING_JSON)
-            return res
+            return HttpResponseBadRequest(ERR.MISSING_JSON)
+
+@requireLogin
+def logout(request, query = ''):
+    if (request.method == 'GET' or request.method == 'get'):
+        return HttpResponse('')
+    else: # Logout
+        request.session['loginState'] = False
+        request.session.flush()
+        dprint('Logout.')
+        return HttpResponse('Logout.')
 
 @loginStateMaintainer
 @requireLogin

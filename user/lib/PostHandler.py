@@ -58,3 +58,4 @@ class ERR():
     SESSION_EXPIRED = 'Session expired.'
     ALREADY_LOGGED_IN = 'Already logged in. Logout before logging in.'
     REQUIRE_LOGIN = 'Require login.'
+    USERNAME_CLASH = 'The username is already in use.'

@@ -20,6 +20,23 @@ class User(models.Model):
     info = models.ForeignKey('UserInfo', on_delete=models.CASCADE) # Has avatar as foreign key
     avatar = models.ForeignKey('Avatar', on_delete=models.CASCADE) # Has user info as foreign key
 
+    @staticmethod
+    def newUser(username, saltedPassword, staticSalt):
+        userInfo = UserInfo(school='')
+        userInfo.save()
+        avatar = Avatar(img='avatar/default.png')
+        avatar.save()
+        user = User(username=username, lower_name=username.lower(),
+                    password=saltedPassword, password_salt=staticSalt,
+                    is_active=True, is_admin=False,
+                    register_time=timezone.now(),
+                    nickname='',
+                    email='',
+                    info=userInfo,
+                    avatar=avatar)
+        user.save()
+        return user
+
     def setPassword(self, saltedPassword, staticSalt): # saltedPassword leak may be dangerous
         self.password = saltedPassword
         self.password_salt = staticSalt
