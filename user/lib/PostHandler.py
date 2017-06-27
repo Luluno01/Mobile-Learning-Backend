@@ -10,9 +10,12 @@ class PostHandler():
     str = None #static member variable
     json = None # static member variable
     check_list = {
-        "login1": ["username"],
-        "login2": ["username", "password", "remember"],
-        "register": ["username", "password"]
+        'login1': ['username'],
+        'login2': ['username', 'password', 'remember'],
+        'register': ['username', 'password'],
+        'reset1': ['username'],
+        'reset2': ['username', 'password'],
+        'reset3': ['userId', 'newPassword']
     }
 
     def __init__(self, request):
@@ -54,8 +57,18 @@ class PostHandler():
 class ERR():
     MISSING_JSON = 'No required json.'
     MISSING_DATA = 'No required data.'
-    USERNAME_OR_PASSWORD_INCORRECT = 'Username or password incorrect.'
     SESSION_EXPIRED = 'Session expired.'
     ALREADY_LOGGED_IN = 'Already logged in. Logout before logging in.'
     REQUIRE_LOGIN = 'Require login.'
+    INVALID_OPERATION = 'Invalid operation.'
+
+    # For login
+    USERNAME_OR_PASSWORD_INCORRECT = 'Username or password incorrect.'
+
+    # For register
     USERNAME_CLASH = 'The username is already in use.'
+
+    # For password reset
+    USERNAME_NOT_MATCH = 'Username not match.'
+    PASSWORD_INCORRECT = 'Password incorrect.'
+    USER_ID_NOT_MATCH = 'User id error.'
