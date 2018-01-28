@@ -15,11 +15,7 @@ class ReqHandler():
         'register': ['username', 'password'],
         'reset1': ['username'],
         'reset2': ['username', 'password'],
-        'reset3': ['userId', 'newPassword'],
-        'addFavorite': ['type', 'id'],
-        'delFavorite': ['type', 'id'],
-        'addFlaw': ['type', 'id'],
-        'delFlaw': ['type', 'id'],
+        'reset3': ['userId', 'newPassword']
     }
 
     def __init__(self, request):
@@ -65,6 +61,7 @@ class ReqHandler():
 class ERR():
     MISSING_JSON = 'No required json.'
     MISSING_DATA = 'No required data.'
+    MISSING_PARAM = 'No required parameters.'
     SESSION_EXPIRED = 'Session expired.'
     ALREADY_LOGGED_IN = 'Already logged in. Logout before logging in.'
     REQUIRE_LOGIN = 'Require login.'

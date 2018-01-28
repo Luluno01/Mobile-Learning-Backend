@@ -1,4 +1,5 @@
 from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest, HttpResponseNotAllowed, HttpResponseForbidden
+from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.shortcuts import render
 
@@ -73,7 +74,7 @@ def register(request, query = ''):
 @loginStateMaintainer
 def login(request, query = ''):
     if(request.method == 'GET' or request.method == 'get'):
-        return render(request, 'user/login.html')
+        return render(request, 'user/csrf.html')
     else:
         reqHandler = ReqHandler(request)
         if reqHandler.getData('json'):
@@ -208,138 +209,172 @@ def reset(request, query = ''):
         else:
             return HttpResponseBadRequest(ERR.MISSING_JSON)
 
-@requireLogin
-@loginStateMaintainer
-def getFavorite(request, query = ''):
-    if request.method.lower() != 'get':
-        return HttpResponseBadRequest()
-    try:
-        user = User.objects.get(id=request.session['userId'])
-        dprint('User found.')
-        return JsonResponse(user.favorites or [], safe=False)
-    except User.DoesNotExist:
-        dprint('User not found. Login state error.')
-        request.session['loginState'] = False
-        request.session.flush()
-        dprint('Force logout.')
-        return HttpResponseUnauthorized('Login state error.')
+class Favorite:
+    '''Handling users' favorite list.
+    '''
+    @staticmethod
+    @requireLogin
+    @loginStateMaintainer
+    def getFavorite(request, **kwargs):
+        if request.method.lower() != 'get':
+            return HttpResponseBadRequest()
+        try:
+            user = User.objects.get(id=request.session['userId'])
+            dprint('User found.')
+            return JsonResponse(user.favorites or [], safe=False)
+        except User.DoesNotExist:
+            dprint('User not found. Login state error.')
+            request.session['loginState'] = False
+            request.session.flush()
+            dprint('Force logout.')
+            return HttpResponseUnauthorized('Login state error.')
 
-@requireLogin
-@loginStateMaintainer
-def addFavorite(request, query = ''):
-    if request.method.lower() != 'post':
-        return HttpResponseBadRequest()
-    try:
-        user = User.objects.get(id=request.session['userId'])
-        dprint('User found.')
-        reqHandler = ReqHandler(request)
-        if reqHandler.getJson():
-            if reqHandler.checkKey('addFavorite'):
-                if user.addFavorite(reqHandler.json['type'], reqHandler.json['id']):
-                    return HttpResponse('Question type:%d id:%d was added to favorite list.' % (reqHandler.json['type'], reqHandler.json['id']))
+    @staticmethod
+    @requireLogin
+    @loginStateMaintainer
+    def addFavorite(request, **kwargs):
+        if request.method.lower() != 'put':
+            return HttpResponseBadRequest()
+        try:
+            user = User.objects.get(id=request.session['userId'])
+            dprint('User found.')
+            # reqHandler = ReqHandler(request)
+            if 'type' in kwargs and 'id' in kwargs and kwargs['type'] and kwargs['id']:
+                if user.addFavorite(int(kwargs['type']), int(kwargs['id'])):
+                    return HttpResponse('Question type:%s id:%s was added to favorite list.' % (kwargs['type'], kwargs['id']))
                 else:
                     return HttpResponseConflict(ERR.ADD_FAILED)
             else:
-                return HttpResponseBadRequest(ERR.MISSING_DATA)
-        else:
-            return HttpResponseBadRequest(ERR.MISSING_JSON)
-    except User.DoesNotExist:
-        dprint('User not found. Login state error.')
-        request.session['loginState'] = False
-        request.session.flush()
-        dprint('Force logout.')
-        return HttpResponseUnauthorized('Login state error.')
+                return HttpResponseBadRequest(ERR.MISSING_PARAM)
+        except User.DoesNotExist:
+            dprint('User not found. Login state error.')
+            request.session['loginState'] = False
+            request.session.flush()
+            dprint('Force logout.')
+            return HttpResponseUnauthorized('Login state error.')
 
-@requireLogin
-@loginStateMaintainer
-def delFavorite(request, query = ''):
-    if request.method.lower() != 'post':
-        return HttpResponseBadRequest()
-    try:
-        user = User.objects.get(id=request.session['userId'])
-        dprint('User found.')
-        reqHandler = ReqHandler(request)
-        if reqHandler.getJson():
-            if reqHandler.checkKey('delFavorite'):
-                if user.delFavorite(reqHandler.json['type'], reqHandler.json['id']):
-                    return HttpResponse('Question type:%d id:%d was deleted from favorite list.' % (reqHandler.json['type'], reqHandler.json['id']))
+    @staticmethod
+    @requireLogin
+    @loginStateMaintainer
+    def delFavorite(request, **kwargs):
+        if request.method.lower() != 'delete':
+            return HttpResponseBadRequest()
+        try:
+            user = User.objects.get(id=request.session['userId'])
+            dprint('User found.')
+            # reqHandler = ReqHandler(request)
+            if 'type' in kwargs and 'id' in kwargs and kwargs['type'] and kwargs['id']:
+                if user.delFavorite(int(kwargs['type']), int(kwargs['id'])):
+                    return HttpResponse('Question type:%s id:%s was deleted from favorite list.' % (kwargs['type'], kwargs['id']))
                 else:
                     return HttpResponseNotFound(ERR.DEL_FAILED)
             else:
-                return HttpResponseBadRequest(ERR.MISSING_DATA)
-        else:
-            return HttpResponseBadRequest(ERR.MISSING_JSON)
-    except User.DoesNotExist:
-        dprint('User not found. Login state error.')
-        request.session['loginState'] = False
-        request.session.flush()
-        dprint('Force logout.')
-        return HttpResponseUnauthorized('Login state error.')
+                return HttpResponseBadRequest(ERR.MISSING_PARAM)
+        except User.DoesNotExist:
+            dprint('User not found. Login state error.')
+            request.session['loginState'] = False
+            request.session.flush()
+            dprint('Force logout.')
+            return HttpResponseUnauthorized('Login state error.')
 
-@requireLogin
-@loginStateMaintainer
-def getFlawbook(request, query = ''):
-    if request.method.lower() != 'get':
-        return HttpResponseBadRequest()
-    try:
-        user = User.objects.get(id=request.session['userId'])
-        dprint('User found.')
-        return JsonResponse(user.flawbook or [], safe=False)
-    except User.DoesNotExist:
-        dprint('User not found. Login state error.')
-        request.session['loginState'] = False
-        request.session.flush()
-        dprint('Force logout.')
-        return HttpResponseUnauthorized('Login state error.')
+    @staticmethod
+    @csrf_exempt
+    def favorite(request, **kwargs):
+        methods = {
+            'get': __class__.getFavorite,
+            'put': __class__.addFavorite,
+            'delete': __class__.delFavorite
+        }
+        method = request.method.lower()
+        if method not in methods:
+            return HttpResponseNotAllowed(['GET', 'PUT', 'DELETE'])
+        dprint('favorite type: ' + (kwargs['type'] or '') + 'id: ' + (kwargs['id'] or ''))
+        # if reqHandler.getJson():
+        #     if 'csrf' in reqHandler.json:
+        #         return render(request, 'user/csrf.html')
+        return methods[method](request, **kwargs)
 
-@requireLogin
-@loginStateMaintainer
-def addFlaw(request, query = ''):
-    if request.method.lower() != 'post':
-        return HttpResponseBadRequest()
-    try:
-        user = User.objects.get(id=request.session['userId'])
-        dprint('User found.')
-        reqHandler = ReqHandler(request)
-        if reqHandler.getJson():
-            if reqHandler.checkKey('addFlaw'):
-                if user.addFlaw(reqHandler.json['type'], reqHandler.json['id']):
-                    return HttpResponse('Question type:%d id:%d was added to flaw list.' % (reqHandler.json['type'], reqHandler.json['id']))
+class Flawbook:
+    '''Handling users' flawbook.
+    '''
+    @staticmethod
+    @requireLogin
+    @loginStateMaintainer
+    def getFlawbook(request, **kwargs):
+        if request.method.lower() != 'get':
+            return HttpResponseBadRequest()
+        try:
+            user = User.objects.get(id=request.session['userId'])
+            dprint('User found.')
+            return JsonResponse(user.flawbook or [], safe=False)
+        except User.DoesNotExist:
+            dprint('User not found. Login state error.')
+            request.session['loginState'] = False
+            request.session.flush()
+            dprint('Force logout.')
+            return HttpResponseUnauthorized('Login state error.')
+
+    @staticmethod
+    @requireLogin
+    @loginStateMaintainer
+    def addFlaw(request, **kwargs):
+        if request.method.lower() != 'put':
+            return HttpResponseBadRequest()
+        try:
+            user = User.objects.get(id=request.session['userId'])
+            dprint('User found.')
+            # reqHandler = ReqHandler(request)
+            if 'type' in kwargs and 'id' in kwargs and kwargs['type'] and kwargs['id']:
+                if user.addFlaw(int(kwargs['type']), int(kwargs['id'])):
+                    return HttpResponse('Question type:%s id:%s was added to flaw list.' % (kwargs['type'], kwargs['id']))
                 else:
                     return HttpResponseConflict(ERR.ADD_FAILED)
             else:
-                return HttpResponseBadRequest(ERR.MISSING_DATA)
-        else:
-            return HttpResponseBadRequest(ERR.MISSING_JSON)
-    except User.DoesNotExist:
-        dprint('User not found. Login state error.')
-        request.session['loginState'] = False
-        request.session.flush()
-        dprint('Force logout.')
-        return HttpResponseUnauthorized('Login state error.')
+                return HttpResponseBadRequest(ERR.MISSING_PARAM)
+        except User.DoesNotExist:
+            dprint('User not found. Login state error.')
+            request.session['loginState'] = False
+            request.session.flush()
+            dprint('Force logout.')
+            return HttpResponseUnauthorized('Login state error.')
 
-@requireLogin
-@loginStateMaintainer
-def delFlaw(request, query = ''):
-    if request.method.lower() != 'post':
-        return HttpResponseBadRequest()
-    try:
-        user = User.objects.get(id=request.session['userId'])
-        dprint('User found.')
-        reqHandler = ReqHandler(request)
-        if reqHandler.getJson():
-            if reqHandler.checkKey('delFlaw'):
-                if user.delFlaw(reqHandler.json['type'], reqHandler.json['id']):
-                    return HttpResponse('Question type:%d id:%d was deleted from flawbook.' % (reqHandler.json['type'], reqHandler.json['id']))
+    @staticmethod
+    @requireLogin
+    @loginStateMaintainer
+    def delFlaw(request, **kwargs):
+        if request.method.lower() != 'delete':
+            return HttpResponseBadRequest()
+        try:
+            user = User.objects.get(id=request.session['userId'])
+            dprint('User found.')
+            # reqHandler = ReqHandler(request)
+            if 'type' in kwargs and 'id' in kwargs and kwargs['type'] and kwargs['id']:
+                if user.delFlaw(int(kwargs['type']), int(kwargs['id'])):
+                    return HttpResponse('Question type:%s id:%s was deleted from flawbook.' % (kwargs['type'], kwargs['id']))
                 else:
                     return HttpResponseNotFound(ERR.DEL_FAILED)
             else:
-                return HttpResponseBadRequest(ERR.MISSING_DATA)
-        else:
-            return HttpResponseBadRequest(ERR.MISSING_JSON)
-    except User.DoesNotExist:
-        dprint('User not found. Login state error.')
-        request.session['loginState'] = False
-        request.session.flush()
-        dprint('Force logout.')
-        return HttpResponseUnauthorized('Login state error.')
+                return HttpResponseBadRequest(ERR.MISSING_PARAM)
+        except User.DoesNotExist:
+            dprint('User not found. Login state error.')
+            request.session['loginState'] = False
+            request.session.flush()
+            dprint('Force logout.')
+            return HttpResponseUnauthorized('Login state error.')
+
+    @staticmethod
+    @csrf_exempt
+    def flawbook(request, **kwargs):
+        methods = {
+            'get': __class__.getFlawbook,
+            'put': __class__.addFlaw,
+            'delete': __class__.delFlaw
+        }
+        method = request.method.lower()
+        if method not in methods:
+            return HttpResponseNotAllowed(['GET', 'PUT', 'DELETE'])
+        dprint('flawbook type: ' + (kwargs['type'] or '') + 'id: ' + (kwargs['id'] or ''))
+        # if reqHandler.getJson():
+        #     if 'csrf' in reqHandler.json:
+        #         return render(request, 'user/csrf.html')
+        return methods[method](request, **kwargs)
