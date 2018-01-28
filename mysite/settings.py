@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import os
+import json
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -32,7 +33,7 @@ ALLOWED_HOSTS = ['test.this.com']
 
 INSTALLED_APPS = [
     'polls.apps.PollsConfig',
-	'user.apps.UserConfig',
+    'user.apps.UserConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -75,13 +76,18 @@ WSGI_APPLICATION = 'mysite.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
 
+with open(os.path.join(BASE_DIR, 'db.json')) as DBCONF:
+    DBCONF = json.load(DBCONF)
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-		'OPTIONS': {
-			'read_default_file': os.path.join(BASE_DIR, 'db.conf'),
-		},
-		'THREADED': True,
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': DBCONF['NAME'],
+        'USER': DBCONF['USER'],
+        'PASSWORD': DBCONF['PASSWORD'],
+        # 'OPTIONS': {
+        #     'read_default_file': os.path.join(BASE_DIR, 'db.conf'),
+        # },
+        'THREADED': True,
     }
 }
 
@@ -131,3 +137,7 @@ STATIC_URL = '/static/'
 # MEDIA
 MEDIA_ROOT = 'media/'
 MEDIA_URL = 'media/'
+
+# Users' favorites and flaw book limits
+MAX_FAVO_SIZE = 100
+MAX_FLAW_SIZE = 100

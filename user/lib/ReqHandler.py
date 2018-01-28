@@ -5,7 +5,7 @@ def dprint(content):
     if settings.DEBUG:
         print('[DEBUG] ' + content)
 
-class PostHandler():
+class ReqHandler():
     request = None # static member variable
     str = None #static member variable
     json = None # static member variable
@@ -15,7 +15,11 @@ class PostHandler():
         'register': ['username', 'password'],
         'reset1': ['username'],
         'reset2': ['username', 'password'],
-        'reset3': ['userId', 'newPassword']
+        'reset3': ['userId', 'newPassword'],
+        'addFavorite': ['type', 'id'],
+        'delFavorite': ['type', 'id'],
+        'addFlaw': ['type', 'id'],
+        'delFlaw': ['type', 'id'],
     }
 
     def __init__(self, request):
@@ -26,8 +30,12 @@ class PostHandler():
             self.str = self.str or self.request.POST[key]
             return self.str
         except (KeyError):
-            dprint('Key "json" not found')
-            return
+            try:
+                self.str = self.str or self.request.GET[key]
+                return self.str
+            except KeyError:
+                dprint('Key "json" not found')
+                return
 
     def getJson(self):
         self.getData('json')
@@ -72,3 +80,7 @@ class ERR():
     USERNAME_NOT_MATCH = 'Username not match.'
     PASSWORD_INCORRECT = 'Password incorrect.'
     USER_ID_NOT_MATCH = 'User id error.'
+
+    # For favorite and flaw list
+    ADD_FAILED = 'Cannot add specified question.'
+    DEL_FAILED = 'Cannot delete specified question.'
