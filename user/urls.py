@@ -9,6 +9,6 @@ urlpatterns = [
     url(r'^login/$', views.login, name='login'),
     url(r'logout/$', views.logout, name='logout'),
     url(r'^reset/$', views.reset, name='reset'),
-    url(r'^favorite/((?P<type>\d+)/(?P<id>\d+))?$', views.Favorite.favorite, name='favorite'),
-    url(r'^flawbook/((?P<type>\d+)/(?P<id>\d+))?$', views.Flawbook.flawbook, name='flawbook')
+    url(r'^favorite/((?P<type>\d+)/(?P<id>\d+)/)?$', views.Favorite.favorite, name='favorite'),
+    url(r'^flawbook/((?P<type>\d+)/(?P<id>\d+)/)?$', views.Flawbook.flawbook, name='flawbook')
 ]
