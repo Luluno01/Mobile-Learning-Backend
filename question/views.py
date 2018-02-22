@@ -1,4 +1,5 @@
 from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest, HttpResponseNotAllowed, HttpResponseForbidden
+from django.shortcuts import get_object_or_404
 from .models import OneChoiceQuestion, OneChoiceChoice
 import logging
 logger = logging.getLogger("django")
@@ -21,28 +22,22 @@ class OneChoiceQuestionView():
 
     @staticmethod
     def getSimpleQuestionInfo(request, *args, **kwargs):
-        try:
-            question = OneChoiceQuestion.objects.get(pk=kwargs['question'])
-            return JsonResponse(question.toSimpleJson(), safe=False)
-        except OneChoiceQuestion.DoesNotExist:
-            return HttpResponseBadRequest('No such question')
+        question = get_object_or_404(OneChoiceQuestion, pk=kwargs['question'])
+        return JsonResponse(question.toSimpleJson(), safe=False)
 
     @staticmethod
     def getFullQuestionInfo(request, *args, **kwargs):
-        try:
-            question = OneChoiceQuestion.objects.get(pk=kwargs['question'])
-            return JsonResponse(question.toJson(), safe=False)
-        except OneChoiceQuestion.DoesNotExist:
-            return HttpResponseBadRequest('No such question')
+        question = get_object_or_404(OneChoiceQuestion, pk=kwargs['question'])
+        return JsonResponse(question.toJson(), safe=False)
 
     @staticmethod
     def validate(request, *args, **kwargs):
         try:
             question_id = int(kwargs['question'])
             answer_id = int(kwargs['answer'])
-            question = OneChoiceQuestion.objects.get(pk=question_id)
+            question = get_object_or_404(OneChoiceQuestion, pk=question_id)
             question.validate(answer_id)
             return HttpResponse('OK')
-        except (ValueError, OneChoiceQuestion.DoesNotExist) as e:
+        except ValueError as e:
             logger.debug(e)
             return HttpResponseBadRequest('Validate failed')
