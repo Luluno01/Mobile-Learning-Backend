@@ -83,7 +83,7 @@ class User(models.Model):
         # if question deos not exists return False
         if quesType < 0 or quesId < 0:
             return False
-        for questionIndex, question in enumerate(self.favorites):
+        for question in self.favorites:
             if [quesType, quesId] == question:  # Already added
                 return False
         if len(self.favorites) >= MAX_FAVO_SIZE:
@@ -111,7 +111,7 @@ class User(models.Model):
             return False
         if len(self.favorites) >= MAX_FLAW_SIZE:
             return False
-        for questionIndex, question in enumerate(self.flawbook):
+        for question in self.flawbook:
             if [quesType, quesId] == question:  # Already added
                 return False
         self.flawbook.append([quesType, quesId])
