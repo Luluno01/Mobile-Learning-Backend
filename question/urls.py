@@ -13,5 +13,5 @@ urlpatterns = [
     re_path(r'^fill-in-question/list/((?P<category>\d+)/)?$', views.FillInQuestionView.getSimpleList),
     path('fill-in-question/simple/<int:question>/', views.FillInQuestionView.getSimpleQuestionInfo),
     path('fill-in-question/full/<int:question>/', views.FillInQuestionView.getFullQuestionInfo),
-    re_path(r'fill-in-question/validate/((?P<question>\d+)/)?((?P<answer>\d+)/)?$', views.FillInQuestionView.validate)
+    re_path(r'fill-in-question/validate/((?P<question>\d+)/)?$', views.FillInQuestionView.validate)
 ]
