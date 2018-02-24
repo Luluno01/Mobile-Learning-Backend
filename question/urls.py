@@ -23,5 +23,10 @@ urlpatterns = [
     re_path(r'^true-or-false-question/list/((?P<category>\d+)/)?$', views.TrueOrFalseQuestionView.getSimpleList),
     path('true-or-false-question/simple/<int:question>/', views.TrueOrFalseQuestionView.getSimpleQuestionInfo),
     path('true-or-false-question/full/<int:question>/', views.TrueOrFalseQuestionView.getFullQuestionInfo),
-    re_path(r'true-or-false-question/validate/((?P<question>\d+)/)?((?P<answer>true|false|True|False)/)?$', views.TrueOrFalseQuestionView.validate)
+    re_path(r'true-or-false-question/validate/((?P<question>\d+)/)?((?P<answer>true|false|True|False)/)?$', views.TrueOrFalseQuestionView.validate),
+    # Multiple-choice question
+    re_path(r'^multiple-choice-question/list/((?P<category>\d+)/)?$', views.MultipleChoiceQuestionView.getSimpleList),
+    path('multiple-choice-question/simple/<int:question>/', views.MultipleChoiceQuestionView.getSimpleQuestionInfo),
+    path('multiple-choice-question/full/<int:question>/', views.MultipleChoiceQuestionView.getFullQuestionInfo),
+    re_path(r'multiple-choice-question/validate/((?P<question>\d+)/)?((?P<answer>\[[ %,\d]*?\])/)?$', views.MultipleChoiceQuestionView.validate)
 ]

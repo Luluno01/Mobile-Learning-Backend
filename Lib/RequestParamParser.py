@@ -5,16 +5,19 @@ def Bool(boolValue, *args, **kwargs):
     if type(boolValue) == bool:
         return boolValue
     falseList = ['False', 'false']
+    trueList = ['True', 'true']
     if boolValue in falseList:
         return False
+    elif boolValue in trueList:
+        return True
     else:
-        return bool(boolValue, *args, **kwargs)
+        raise ValueError('Invalid bool value')
 
 def RequestParamParser(request, urlParams, *args, **kwargs):
     parsers = [
         (int, ValueError),
         (float, ValueError),
-        (Bool, None),
+        (Bool, ValueError),
         (json.loads, JSONDecodeError)
     ]
     request.params.update(urlParams)

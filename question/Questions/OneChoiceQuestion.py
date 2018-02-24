@@ -31,7 +31,7 @@ class OneChoiceQuestion(ChoiceQuestion):
                 raise TypeError('Unsupported type of key word `json`')
             del kwargs['json']
             
-            # Date checks
+            # Data checks
             if obj['answer'] < 0 or obj['answer'] >= len(obj['choices']):
                 raise ValueError('Invalid answer index')
 
@@ -123,9 +123,8 @@ class OneChoiceQuestion(ChoiceQuestion):
         }
 
     def answer_number_and_id(self):
-        try:
-            choices = OneChoiceChoice.objects.filter(question=self)
-        except (__class__.DoesNotExist, OneChoiceChoice.DoesNotExist):
+        choices = OneChoiceChoice.objects.filter(question=self)
+        if not choices:
             logger.warning('No choices for question %s' % self)
             return 'No answer'
         # logger.debug('%s' % [choice.id for choice in choices])
@@ -133,7 +132,6 @@ class OneChoiceQuestion(ChoiceQuestion):
             if choice.id == self.answer:
                 return '%s/%s' % (choiceIndex + 1, self.answer)
         return 'No answer'
-    answer_number_and_id.integer = True
 
     @classmethod
     def clearNoAnswer(cls):
@@ -177,8 +175,8 @@ class OneChoiceQuestion(ChoiceQuestion):
                 question.delete()
                 continue
             try:
-                answer = OneChoiceChoice.objects.get(pk=question.answer)
-                if not answer.question or answer.question.id != question.id:
+                answer = OneChoiceChoice.objects.get(pk=question.answer, question=self)
+                if not answer:
                     logger.warning('Question with answer that belongs to another question found (id: %d), reserved' % question.id)
                     wild.append({
                         'id': question.id,

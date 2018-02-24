@@ -23,7 +23,7 @@ class Choice(models.Model):
     @classmethod
     def clearNoOwner(cls):
         logger.warning('Clearing choices belong to no question')
-        cls.objects.filter(question=None).delete()
+        return cls.objects.filter(question=None).delete()
 
     def toJson(self):
         return {
