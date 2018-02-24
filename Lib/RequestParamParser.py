@@ -1,10 +1,20 @@
 import json
 from json.decoder import JSONDecodeError
 
+def Bool(boolValue, *args, **kwargs):
+    if type(boolValue) == bool:
+        return boolValue
+    falseList = ['False', 'false']
+    if boolValue in falseList:
+        return False
+    else:
+        return bool(boolValue, *args, **kwargs)
+
 def RequestParamParser(request, urlParams, *args, **kwargs):
     parsers = [
         (int, ValueError),
         (float, ValueError),
+        (Bool, None),
         (json.loads, JSONDecodeError)
     ]
     request.params.update(urlParams)

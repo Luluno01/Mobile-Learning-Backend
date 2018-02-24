@@ -3,7 +3,7 @@ from json.decoder import JSONDecodeError
 from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest, HttpResponseNotAllowed, HttpResponseForbidden
 from django.shortcuts import get_object_or_404
 from .Questions.Question import Question
-from .models import OneChoiceQuestion, OneChoiceChoice, FillInQuestion, SubjectiveQuestion
+from .models import OneChoiceQuestion, OneChoiceChoice, FillInQuestion, SubjectiveQuestion, TrueOrFalseQuestion
 from Lib.RequestParamParser import RequestParamParser
 import logging
 logger = logging.getLogger("django")
@@ -14,7 +14,7 @@ class QuestionView():
     '''Base class for views for Question
     '''
     QuestionClass = Question
-    ValidateAnswer = True
+    validateAnswer = True
 
     @classmethod
     def getSimpleList(cls, request, *args, **kwargs):
@@ -47,7 +47,7 @@ class QuestionView():
             return HttpResponseBadRequest('Validate failed')
 
         answer = None
-        if cls.ValidateAnswer:
+        if cls.validateAnswer:
             if 'answer' not in request.params:
                 return HttpResponseBadRequest('Validate failed')
             answer = request.params['answer']
@@ -62,8 +62,12 @@ class OneChoiceQuestionView(QuestionView):
 
 class FillInQuestionView(QuestionView):
     QuestionClass = FillInQuestion
-    ValidateAnswer = False
+    validateAnswer = False
 
 class SubjectiveQuestionView(QuestionView):
     QuestionClass = SubjectiveQuestion
-    ValidateAnswer = False
+    validateAnswer = False
+
+class TrueOrFalseQuestionView(QuestionView):
+    QuestionClass = TrueOrFalseQuestion
+    validateAnswer = True

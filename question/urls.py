@@ -18,5 +18,10 @@ urlpatterns = [
     re_path(r'^subjective-question/list/((?P<category>\d+)/)?$', views.SubjectiveQuestionView.getSimpleList),
     path('subjective-question/simple/<int:question>/', views.SubjectiveQuestionView.getSimpleQuestionInfo),
     path('subjective-question/full/<int:question>/', views.SubjectiveQuestionView.getFullQuestionInfo),
-    re_path(r'subjective-question/validate/((?P<question>\d+)/)?$', views.SubjectiveQuestionView.validate)
+    re_path(r'subjective-question/validate/((?P<question>\d+)/)?$', views.SubjectiveQuestionView.validate),
+    # True-or-false question
+    re_path(r'^true-or-false-question/list/((?P<category>\d+)/)?$', views.TrueOrFalseQuestionView.getSimpleList),
+    path('true-or-false-question/simple/<int:question>/', views.TrueOrFalseQuestionView.getSimpleQuestionInfo),
+    path('true-or-false-question/full/<int:question>/', views.TrueOrFalseQuestionView.getFullQuestionInfo),
+    re_path(r'true-or-false-question/validate/((?P<question>\d+)/)?((?P<answer>true|false|True|False)/)?$', views.TrueOrFalseQuestionView.validate)
 ]
