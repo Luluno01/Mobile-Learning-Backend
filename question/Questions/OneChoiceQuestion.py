@@ -80,6 +80,8 @@ class OneChoiceQuestion(ChoiceQuestion):
                 raise ValueError('No such answer with id %d' % usersAnswer)
 
     def toSimpleJson(self):
+        '''Return simply serialized data of this question
+        '''
         return {
             'id': self.id,
             'question_text': self.question_text,
@@ -94,6 +96,8 @@ class OneChoiceQuestion(ChoiceQuestion):
         }
 
     def toJson(self):
+        '''Return fully serialized data of this question
+        '''
         choices = OneChoiceChoice.objects.filter(question=self)
         # answerIndex = -1
         choicesJson = []

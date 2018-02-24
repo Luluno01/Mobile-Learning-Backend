@@ -23,9 +23,34 @@ class Question(models.Model):
 
     @classmethod
     def create(cls, *args, **kwargs):
+        '''Create a Question, or its derived question class, object
+        '''
         question = cls(*args, **kwargs)
         question.entry_date = timezone.now()
         return question
+
+    def toSimpleJson(self):
+        '''Return simply serialized data of this question
+        '''
+        return {
+            'id': self.id,
+            'question_text': self.question_text,
+            'category': self.category,
+            'topic': self.topic,
+            'visit_count': self.visit_count,
+            'source': self.source,
+            'entry_date': self.entry_date.timestamp() * 1e3
+        }
+
+    def toJson(self):
+        '''Return fully serialized data of this question
+        '''
+        return {}
+
+    def validate(self, usersAnswer):
+        '''Validate the answer provided by a user
+        '''
+        pass
 
     def countInc(self):
         self.visit_count = F('visit_count') + 1
