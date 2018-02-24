@@ -13,5 +13,10 @@ urlpatterns = [
     re_path(r'^fill-in-question/list/((?P<category>\d+)/)?$', views.FillInQuestionView.getSimpleList),
     path('fill-in-question/simple/<int:question>/', views.FillInQuestionView.getSimpleQuestionInfo),
     path('fill-in-question/full/<int:question>/', views.FillInQuestionView.getFullQuestionInfo),
-    re_path(r'fill-in-question/validate/((?P<question>\d+)/)?$', views.FillInQuestionView.validate)
+    re_path(r'fill-in-question/validate/((?P<question>\d+)/)?$', views.FillInQuestionView.validate),
+    # Subjective question
+    re_path(r'^subjective-question/list/((?P<category>\d+)/)?$', views.SubjectiveQuestionView.getSimpleList),
+    path('subjective-question/simple/<int:question>/', views.SubjectiveQuestionView.getSimpleQuestionInfo),
+    path('subjective-question/full/<int:question>/', views.SubjectiveQuestionView.getFullQuestionInfo),
+    re_path(r'subjective-question/validate/((?P<question>\d+)/)?$', views.SubjectiveQuestionView.validate)
 ]

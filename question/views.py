@@ -3,7 +3,7 @@ from json.decoder import JSONDecodeError
 from django.http import HttpResponse, JsonResponse, HttpResponseBadRequest, HttpResponseNotAllowed, HttpResponseForbidden
 from django.shortcuts import get_object_or_404
 from .Questions.Question import Question
-from .models import OneChoiceQuestion, OneChoiceChoice, FillInQuestion
+from .models import OneChoiceQuestion, OneChoiceChoice, FillInQuestion, SubjectiveQuestion
 from Lib.RequestParamParser import RequestParamParser
 import logging
 logger = logging.getLogger("django")
@@ -62,4 +62,8 @@ class OneChoiceQuestionView(QuestionView):
 
 class FillInQuestionView(QuestionView):
     QuestionClass = FillInQuestion
+    ValidateAnswer = False
+
+class SubjectiveQuestionView(QuestionView):
+    QuestionClass = SubjectiveQuestion
     ValidateAnswer = False

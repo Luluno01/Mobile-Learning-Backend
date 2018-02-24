@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import OneChoiceQuestion, OneChoiceChoice, FillInQuestion
+from .models import OneChoiceQuestion, OneChoiceChoice, FillInQuestion, SubjectiveQuestion
 
 # Register your models here.
 
@@ -28,5 +28,14 @@ class FillInQuestionAdmin(admin.ModelAdmin):
     ]
     list_display = ('question_id', 'question_text', 'category_text', 'topic', 'source', 'entry_date', 'visit_count')
 
+class SubjectiveQuestionAdmin(admin.ModelAdmin):
+    fieldsets = [
+        (None,               {'fields': ['question_text', 'answer', 'resolution', 'category']}),
+        ('Meta information', {'fields': ['entry_date', 'source', 'topic'], 'classes': ['collapse']}),
+        ('Statistics', {'fields': ['visit_count'], 'classes': ['collapse']}),
+    ]
+    list_display = ('question_id', 'question_text', 'category_text', 'topic', 'source', 'entry_date', 'visit_count')
+
 admin.site.register(OneChoiceQuestion, OneChoiceQuestionAdmin)
 admin.site.register(FillInQuestion, FillInQuestionAdmin)
+admin.site.register(SubjectiveQuestion, SubjectiveQuestionAdmin)
