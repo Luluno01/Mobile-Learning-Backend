@@ -29,3 +29,4 @@ class FillInQuestionAdmin(admin.ModelAdmin):
     list_display = ('question_id', 'question_text', 'category_text', 'topic', 'source', 'entry_date', 'visit_count')
 
 admin.site.register(OneChoiceQuestion, OneChoiceQuestionAdmin)
+admin.site.register(FillInQuestion, FillInQuestionAdmin)
