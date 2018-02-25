@@ -1,6 +1,19 @@
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.conf import settings
+from question.models import OneChoiceQuestion, OneChoiceChoice
+from question.models import MultipleChoiceQuestion, MultipleChoiceChoice
+from question.models import TrueOrFalseQuestion
+from question.models import FillInQuestion
+from question.models import SubjectiveQuestion
+
+QUESTIONS = [
+    OneChoiceQuestion,
+    MultipleChoiceQuestion,
+    TrueOrFalseQuestion,
+    FillInQuestion,
+    SubjectiveQuestion
+]
 
 MAX_FAVO_SIZE = settings.MAX_FAVO_SIZE
 MAX_FLAW_SIZE = settings.MAX_FLAW_SIZE
@@ -79,9 +92,10 @@ class User(models.Model):
     def addFavorite(self, quesType, quesId):
         if not self.favorites:
             self.favorites = []
-        # TODO: Validate specified question
-        # if question deos not exists return False
-        if quesType < 0 or quesId < 0:
+        # Validate specified question
+        try:
+            QUESTIONS[quesType].objects.get(pk=quesId)
+        except (KeyError, QUESTIONS[quesType].DoesNotExist):
             return False
         for question in self.favorites:
             if [quesType, quesId] == question:  # Already added
@@ -105,9 +119,10 @@ class User(models.Model):
     def addFlaw(self, quesType, quesId):
         if not self.flawbook:
             self.flawbook = []
-        # TODO: Validate specified question
-        # if question deos not exists return False
-        if quesType < 0 or quesId < 0:
+        # Validate specified question
+        try:
+            QUESTIONS[quesType].objects.get(pk=quesId)
+        except (KeyError, QUESTIONS[quesType].DoesNotExist):
             return False
         if len(self.favorites) >= MAX_FLAW_SIZE:
             return False

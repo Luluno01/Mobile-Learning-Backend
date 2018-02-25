@@ -175,8 +175,8 @@ class OneChoiceQuestion(ChoiceQuestion):
                 question.delete()
                 continue
             try:
-                answer = OneChoiceChoice.objects.get(pk=question.answer, question=self)
-                if not answer:
+                answer = OneChoiceChoice.objects.get(pk=question.answer)
+                if not answer.question or answer.question.id != question.id:
                     logger.warning('Question with answer that belongs to another question found (id: %d), reserved' % question.id)
                     wild.append({
                         'id': question.id,
