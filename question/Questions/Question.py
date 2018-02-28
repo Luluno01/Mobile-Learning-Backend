@@ -1,6 +1,6 @@
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
-from django.db.models import F
+from django.db.models import F, Q
 from django.utils import timezone
 from enum import Enum
 import logging
@@ -35,6 +35,65 @@ class Question(models.Model):
         question = cls(*args, **kwargs)
         question.entry_date = timezone.now()
         return question
+
+    @classmethod
+    def search(cls, category=[], topic=[], question_text=''):
+        keywords = {
+            'category': None,
+            'topic': None,
+            'question_text': None
+        }
+        if category or topic or question_text:
+            if category:
+                keywords['category'] = Q(category=category[0])
+                for index, value in enumerate(category):
+                    if index > 0:
+                        keywords['category'] |= Q(category=value)
+            if topic:
+                keywords['topic'] = Q(topic__contains=[topic[0]])
+                for index, value in enumerate(topic):
+                    if index > 0:
+                        keywords['topic'] |= Q(topic__contains=[value])
+            if question_text:
+                keywords['question_text'] = Q(question_text__contains=question_text)
+            condition = None
+            for keyword in keywords:
+                if not keywords[keyword]:
+                    continue
+                if not condition:
+                    condition = keywords[keyword]
+                else:
+                    condition &= keywords[keyword]
+            logger.info(cls)
+            res = list(cls.objects.filter(condition))[:10]
+            return list(map(lambda ques: ques.toSimpleJson(), res))
+        else:
+            raise ValueError('Require at least one parameter')
+
+    @classmethod
+    def getNew(cls, num=10):
+        res = list(cls.objects.order_by('entry_date'))
+        length = len(res)
+        res = res[length - num : length]
+        res.reverse()
+        return list(map(lambda ques: ques.toSimpleJson(), res))
+
+    @classmethod
+    def getHot(cls, num=10):
+        res = [None] * 3
+        res[0] = list(cls.objects.order_by('visit_count'))
+        res[1] = list(cls.objects.order_by('visit_count_daily'))
+        res[2] = list(cls.objects.order_by('visit_count_weekly'))
+        length = list(map(len, res))
+        for i in range(3):
+            res[i] = res[i][length[i] - num : length[i]]
+            res[i] = list(map(lambda ques: ques.toSimpleJson(), res[i]))
+            res[i].reverse()
+        return {
+            'tops': res[0],
+            'topsDaily': res[1],
+            'topsWeekly': res[2]
+        }
 
     def toSimpleJson(self):
         '''Return simply serialized data of this question

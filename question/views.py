@@ -10,6 +10,7 @@ from .models import TrueOrFalseQuestion
 from .models import MultipleChoiceQuestion, MultipleChoiceChoice
 from .models import QuestionList
 from Lib.RequestParamParser import RequestParamParser
+from user.views import requireLogin
 import logging
 logger = logging.getLogger("django")
 
@@ -51,10 +52,54 @@ class QuestionView():
             except ValueError:
                 _list = questionList.getList(cls.QuestionClass)
             except IndexError:
-                return HttpResponseBadRequest('Invalid category')
+                # return HttpResponseBadRequest('Invalid category')
+                return JsonResponse([], safe=False)
         else:
             _list = questionList.getList(cls.QuestionClass)
         return JsonResponse(_list, safe=False)
+
+    @classmethod
+    @requireLogin
+    def search(cls, request, *args, **kwargs):
+        RequestParamParser(request, kwargs)
+
+        if 'categories' in request.params or 'topics' in request.params or 'question_text' in request.params:
+            categories = []
+            topics = []
+            question_text = ''
+            try:
+                categories = request.params['categories'] or []
+            except KeyError:
+                pass
+            try:
+                topics = request.params['topics'] or []
+            except KeyError:
+                pass
+            try:
+                question_text = request.params['question_text'] or ''
+            except KeyError:
+                pass
+            try:
+                logger.info(categories)
+                logger.info(topics)
+                logger.info(question_text)
+                return JsonResponse(cls.QuestionClass.search(categories, topics, question_text), safe=False)
+            except ValueError:
+                return HttpResponseBadRequest('Search faild')
+        else:
+            return HttpResponseBadRequest('Invalid search parameters')
+
+    @classmethod
+    def getNew(cls, request, *args, **kwargs):
+        RequestParamParser(request, kwargs)
+
+        return JsonResponse(cls.QuestionClass.getNew(10), safe=False)
+
+    @classmethod
+    def getHot(cls, request, *args, **kwargs):
+        RequestParamParser(request, kwargs)
+
+        return JsonResponse(cls.QuestionClass.getHot(10), safe=False)
 
     @classmethod
     def getSimpleQuestionInfo(cls, request, *args, **kwargs):

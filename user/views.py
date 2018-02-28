@@ -27,9 +27,13 @@ def loginStateMaintainer(func):
     return wrapper
 
 def requireLogin(func):
-    def wrapper(request, *args, **kwargs):
+    def wrapper(*args, **kwargs):
+        if type(args[0]) == type:  # classmethod
+            request = args[1]
+        else:
+            request = args[0]
         if User.isLoggedIn(request):
-            return func(request, *args, **kwargs)
+            return func(*args, **kwargs)
         else:
             return HttpResponseUnauthorized(ERR.REQUIRE_LOGIN)
     return wrapper
