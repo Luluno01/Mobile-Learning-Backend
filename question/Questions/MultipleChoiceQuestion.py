@@ -16,6 +16,8 @@ class MultipleChoiceQuestion(ChoiceQuestion):
     answer = ArrayField(models.IntegerField(default=0), default=__defaultList__)  # Answers of this question
     correct_count = models.IntegerField(default=0)
 
+    CHOICE_CLASS = None
+
     @classmethod
     def create(cls, *args, **kwargs):
         '''Create an MultipleChoiceQuestion object
@@ -65,6 +67,15 @@ class MultipleChoiceQuestion(ChoiceQuestion):
 
         return question
 
+    def countInc(self, correct=False, *args, **kwargs):
+        self.visit_count = F('visit_count') + 1
+        self.visit_count_daily = F('visit_count_daily') + 1
+        self.visit_count_weekly = F('visit_count_weekly') + 1
+        if correct:
+            self.correct_count = F('correct_count') + 1
+            self.correct_count_daily = F('correct_count_daily') + 1
+            self.correct_count_weekly = F('correct_count_weekly') + 1
+
     def validate(self, usersAnswer):
         '''Validate the answer provided by a user
         '''
@@ -82,13 +93,13 @@ class MultipleChoiceQuestion(ChoiceQuestion):
         if not answers:
             logger.error('Broken question %s' % self)
             return
+        correct = False
         if set(usersAnswer) == set(self.answer):  # Correct
             self.accuracy = (self.correct_count + 1) / (self.visit_count + 1)
-            self.correct_count = F('correct_count') + 1
-            self.visit_count = F('visit_count') + 1
-            self.save()
+            correct = True
             for ans in answers:
                 ans.countInc()
+                ans.save()
         else:  # Wrong
             condition = Q(pk=usersAnswer[0])
             for answerIndex, answer in enumerate(usersAnswer):
@@ -100,52 +111,11 @@ class MultipleChoiceQuestion(ChoiceQuestion):
                 logger.info('Unmatched answers %s' % usersAnswer)
                 raise ValueError('Unmatched answers %s' % usersAnswer)
             self.accuracy = self.correct_count / (self.visit_count + 1)
-            self.countInc()
             for ans in _usersAnswer:
                 ans.countInc()
-
-    def toSimpleJson(self):
-        '''Return simply serialized data of this question
-        '''
-        return {
-            'id': self.id,
-            'question_text': self.question_text,
-            # 'answer': self.answer,
-            # 'resolution': self.resolution,
-            'category': self.category,
-            'topic': self.topic,
-            'visit_count': self.visit_count,
-            'accuracy': self.accuracy,
-            'source': self.source,
-            'entry_date': self.entry_date.timestamp() * 1e3
-        }
-
-    def toJson(self):
-        '''Return fully serialized data of this question
-        '''
-        choices = MultipleChoiceChoice.objects.filter(question=self)
-        # answerIndex = -1
-        choicesJson = []
-        # for choiceIndex, choice in enumerate(choices):
-        for choice in choices:
-            choicesJson.append(choice.toJson())
-            # if choice.id == self.answer:
-            #     answerIndex = choiceIndex
-        # if answerIndex == -1:
-        #     logger.error('Bad question found (id: %d)' % self.id)
-        return {
-            'id': self.id,
-            'question_text': self.question_text,
-            'choices': choicesJson,
-            'answer': self.answer,
-            'resolution': self.resolution,
-            'category': self.category,
-            'topic': self.topic,
-            'visit_count': self.visit_count,
-            'accuracy': self.accuracy,
-            'source': self.source,
-            'entry_date': self.entry_date.timestamp() * 1e3
-        }
+                ans.save()
+        self.countInc(correct)
+        self.save()
 
     def answer_number_and_id(self):
         choices = MultipleChoiceChoice.objects.filter(question=self)
@@ -265,9 +235,10 @@ class MultipleChoiceQuestion(ChoiceQuestion):
                 })
         return deleted, broken, wild
 
-
 class MultipleChoiceChoice(Choice):
     '''Choice of a multiple-choice question
     '''
     question = models.ForeignKey(MultipleChoiceQuestion, models.CASCADE, null=True)
     pass
+
+MultipleChoiceQuestion.CHOICE_CLASS = MultipleChoiceChoice

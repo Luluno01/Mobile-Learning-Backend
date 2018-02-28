@@ -3,6 +3,8 @@ from django.db import models
 from django.db.models import F
 from django.utils import timezone
 from enum import Enum
+import logging
+logger = logging.getLogger("django")
 
 def __defaultList__():
     return []
@@ -17,7 +19,12 @@ class Question(models.Model):
     category = models.IntegerField(default=1)  # Category that this question belongs to
     topic = ArrayField(models.CharField(max_length=100, default=''), default=__defaultList__)  # Involved topics of this question
     visit_count = models.IntegerField(default=0)  # Visit count of this question
+    visit_count_daily = models.IntegerField(default=0)  # Visit count of this question within today
+    visit_count_weekly = models.IntegerField(default=0)  # Visit count of this question within this week
     # accuracy = models.FloatField(default=0)  # Accuracy
+    # accuracy_daily = models.FloatField(default=0)
+    # accuracy_weekly = models.FloatField(default=0)
+    
     source = models.TextField(default='')  # Source of this question
     entry_date = models.DateTimeField('entry date')  # Entry time of this question
 
@@ -38,6 +45,8 @@ class Question(models.Model):
             'category': self.category,
             'topic': self.topic,
             'visit_count': self.visit_count,
+            'visit_count_daily': self.visit_count_daily,
+            'visit_count_weekly': self.visit_count_weekly,
             'source': self.source,
             'entry_date': self.entry_date.timestamp() * 1e3
         }
@@ -45,16 +54,37 @@ class Question(models.Model):
     def toJson(self):
         '''Return fully serialized data of this question
         '''
-        return {}
+        return {
+            'id': self.id,
+            'question_text': self.question_text,
+            'answer': self.answer,
+            'resolution': self.resolution,
+            'category': self.category,
+            'topic': self.topic,
+            'visit_count': self.visit_count,
+            'visit_count_daily': self.visit_count_daily,
+            'visit_count_weekly': self.visit_count_weekly,
+            'source': self.source,
+            'entry_date': self.entry_date.timestamp() * 1e3
+        }
 
     def validate(self, usersAnswer):
         '''Validate the answer provided by a user
         '''
-        pass
-
-    def countInc(self):
-        self.visit_count = F('visit_count') + 1
+        self.countInc()
         self.save()
+
+    def countInc(self, *args, **kwargs):
+        self.visit_count = F('visit_count') + 1
+        self.visit_count_daily = F('visit_count_daily') + 1
+        self.visit_count_weekly = F('visit_count_weekly') + 1
+
+    def countResetDaily(self):
+        self.visit_count_daily = 0
+
+    def countResetWeekly(self):
+        self.visit_count_daily = 0
+        self.visit_count_weekly = 0
 
     def setCategory(self, cat):
         if type(cat) == int:

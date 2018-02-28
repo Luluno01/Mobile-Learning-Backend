@@ -9,6 +9,8 @@ class OneChoiceQuestion(ChoiceQuestion):
     '''One-choice question
     '''
     answer = models.IntegerField(default=0)  # Answer of this question
+    
+    CHOICE_CLASS = None
 
     @staticmethod
     def newOneChoiceQuestion(*args, **kwargs):
@@ -65,62 +67,23 @@ class OneChoiceQuestion(ChoiceQuestion):
         except OneChoiceChoice.DoesNotExist:
             logger.error('Broken question %s' % self)
             return
+        correct = False
         if usersAnswer == self.answer:  # Correct
             self.accuracy = (answer.selection_count + 1) / (self.visit_count + 1)
-            self.countInc()
             answer.countInc()
+            answer.save()
+            correct = True
         else:  # Wrong
             try:
                 _usersAnswer = OneChoiceChoice.objects.get(pk=usersAnswer, question=self)
                 self.accuracy = answer.selection_count / (self.visit_count + 1)
-                self.countInc()
                 _usersAnswer.countInc()
+                _usersAnswer.save()
             except OneChoiceChoice.DoesNotExist:
                 logger.info('No such answer with id %d' % usersAnswer)
                 raise ValueError('No such answer with id %d' % usersAnswer)
-
-    def toSimpleJson(self):
-        '''Return simply serialized data of this question
-        '''
-        return {
-            'id': self.id,
-            'question_text': self.question_text,
-            # 'answer': self.answer,
-            # 'resolution': self.resolution,
-            'category': self.category,
-            'topic': self.topic,
-            'visit_count': self.visit_count,
-            'accuracy': self.accuracy,
-            'source': self.source,
-            'entry_date': self.entry_date.timestamp() * 1e3
-        }
-
-    def toJson(self):
-        '''Return fully serialized data of this question
-        '''
-        choices = OneChoiceChoice.objects.filter(question=self)
-        # answerIndex = -1
-        choicesJson = []
-        # for choiceIndex, choice in enumerate(choices):
-        for choice in choices:
-            choicesJson.append(choice.toJson())
-            # if choice.id == self.answer:
-            #     answerIndex = choiceIndex
-        # if answerIndex == -1:
-        #     logger.error('Bad question found (id: %d)' % self.id)
-        return {
-            'id': self.id,
-            'question_text': self.question_text,
-            'choices': choicesJson,
-            'answer': self.answer,
-            'resolution': self.resolution,
-            'category': self.category,
-            'topic': self.topic,
-            'visit_count': self.visit_count,
-            'accuracy': self.accuracy,
-            'source': self.source,
-            'entry_date': self.entry_date.timestamp() * 1e3
-        }
+        self.countInc(correct)
+        self.save()
 
     def answer_number_and_id(self):
         choices = OneChoiceChoice.objects.filter(question=self)
@@ -210,9 +173,10 @@ class OneChoiceQuestion(ChoiceQuestion):
                 question.delete()
         return deleted, wild
 
-
 class OneChoiceChoice(Choice):
     '''Choice of a one-choice question
     '''
     question = models.ForeignKey(OneChoiceQuestion, models.CASCADE, null=True)
     pass
+
+OneChoiceQuestion.CHOICE_CLASS = OneChoiceChoice

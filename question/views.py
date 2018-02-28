@@ -8,6 +8,7 @@ from .models import FillInQuestion
 from .models import SubjectiveQuestion
 from .models import TrueOrFalseQuestion
 from .models import MultipleChoiceQuestion, MultipleChoiceChoice
+from .models import QuestionList
 from Lib.RequestParamParser import RequestParamParser
 import logging
 logger = logging.getLogger("django")
@@ -32,6 +33,28 @@ class QuestionView():
             _allQues = list(cls.QuestionClass.objects.all())
         allQues = list(map(lambda ques: ques.toSimpleJson(), _allQues))
         return JsonResponse(allQues, safe=False)
+
+    @classmethod
+    def getIdList(cls, request, *args, **kwargs):
+        questionList = QuestionList.objects.all()
+        if not questionList:
+            questionList = QuestionList()
+            questionList.update()
+            questionList.save()
+        else:
+            questionList = questionList[0]
+
+        if kwargs['category']:
+            try:
+                kwargs['category'] = int(kwargs['category'])
+                _list = questionList.getList(cls.QuestionClass)[kwargs['category'] - 1]
+            except ValueError:
+                _list = questionList.getList(cls.QuestionClass)
+            except IndexError:
+                return HttpResponseBadRequest('Invalid category')
+        else:
+            _list = questionList.getList(cls.QuestionClass)
+        return JsonResponse(_list, safe=False)
 
     @classmethod
     def getSimpleQuestionInfo(cls, request, *args, **kwargs):
