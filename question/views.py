@@ -92,14 +92,18 @@ class QuestionView():
     @classmethod
     def getNew(cls, request, *args, **kwargs):
         RequestParamParser(request, kwargs)
-
-        return JsonResponse(cls.QuestionClass.getNew(10), safe=False)
+        if 'category' in request.params:
+            return JsonResponse(cls.QuestionClass.getNew(request.params['category'], 10), safe=False)
+        else:
+            return JsonResponse(cls.QuestionClass.getNew(num=10), safe=False)
 
     @classmethod
     def getHot(cls, request, *args, **kwargs):
         RequestParamParser(request, kwargs)
-
-        return JsonResponse(cls.QuestionClass.getHot(10), safe=False)
+        if 'category' in request.params:
+            return JsonResponse(cls.QuestionClass.getHot(request.params['category'], 10), safe=False)
+        else:
+            return JsonResponse(cls.QuestionClass.getHot(num=10), safe=False)
 
     @classmethod
     def getSimpleQuestionInfo(cls, request, *args, **kwargs):

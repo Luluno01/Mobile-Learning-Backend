@@ -71,19 +71,35 @@ class Question(models.Model):
             raise ValueError('Require at least one parameter')
 
     @classmethod
-    def getNew(cls, num=10):
-        res = list(cls.objects.order_by('entry_date'))
+    def getNew(cls, category=[], num=10):
+        if category:
+            condition = Q(category=category[0])
+            for index, value in enumerate(category):
+                if index > 0:
+                    condition |= Q(category=value)
+            res = list(cls.objects.filter(condition).order_by('entry_date'))
+        else:
+            res = list(cls.objects.order_by('entry_date'))
         length = len(res)
         res = res[length - num : length]
         res.reverse()
         return list(map(lambda ques: ques.toSimpleJson(), res))
 
     @classmethod
-    def getHot(cls, num=10):
+    def getHot(cls, category=[], num=10):
         res = [None] * 3
-        res[0] = list(cls.objects.order_by('visit_count'))
-        res[1] = list(cls.objects.order_by('visit_count_daily'))
-        res[2] = list(cls.objects.order_by('visit_count_weekly'))
+        if category:
+            condition = Q(category=category[0])
+            for index, value in enumerate(category):
+                if index > 0:
+                    condition |= Q(category=value)
+            res[0] = list(cls.objects.filter(condition).order_by('visit_count'))
+            res[1] = list(cls.objects.filter(condition).order_by('visit_count_daily'))
+            res[2] = list(cls.objects.filter(condition).order_by('visit_count_weekly'))
+        else:
+            res[0] = list(cls.objects.order_by('visit_count'))
+            res[1] = list(cls.objects.order_by('visit_count_daily'))
+            res[2] = list(cls.objects.order_by('visit_count_weekly'))
         length = list(map(len, res))
         for i in range(3):
             res[i] = res[i][length[i] - num : length[i]]
