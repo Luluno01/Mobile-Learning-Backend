@@ -71,12 +71,9 @@ class Question(models.Model):
             raise ValueError('Require at least one parameter')
 
     @classmethod
-    def getNew(cls, category=[], num=10):
-        if category:
-            condition = Q(category=category[0])
-            for index, value in enumerate(category):
-                if index > 0:
-                    condition |= Q(category=value)
+    def getNew(cls, category=1, num=10):
+        if category and type(category) == int:
+            condition = Q(category=category)
             res = list(cls.objects.filter(condition).order_by('entry_date'))
         else:
             res = list(cls.objects.order_by('entry_date'))
@@ -86,13 +83,10 @@ class Question(models.Model):
         return list(map(lambda ques: ques.toSimpleJson(), res))
 
     @classmethod
-    def getHot(cls, category=[], num=10):
+    def getHot(cls, category=1, num=10):
         res = [None] * 3
-        if category:
-            condition = Q(category=category[0])
-            for index, value in enumerate(category):
-                if index > 0:
-                    condition |= Q(category=value)
+        if category and type(category) == int:
+            condition = Q(category=category)
             res[0] = list(cls.objects.filter(condition).order_by('visit_count'))
             res[1] = list(cls.objects.filter(condition).order_by('visit_count_daily'))
             res[2] = list(cls.objects.filter(condition).order_by('visit_count_weekly'))
