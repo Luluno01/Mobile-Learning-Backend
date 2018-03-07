@@ -40,10 +40,12 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles'
+    'django.contrib.staticfiles',
+    'corsheaders'
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -139,6 +141,28 @@ STATIC_URL = '/static/'
 # MEDIA
 MEDIA_ROOT = 'media/'
 MEDIA_URL = 'media/'
+
+# Cross Origin
+
+CORS_ORIGIN_WHITELIST = (
+    'test.this.com:8027',
+    'test.this.com',
+    'localhost:8000',
+    'localhost:8027',
+    'localhost',
+    '127.0.0.1:8000',
+    '127.0.0.1:8027',
+    '127.0.0.1',
+    'null'
+)
+
+CORS_ORIGIN_REGEX_WHITELIST = (
+    r'^(https?://)?(\w+\.)?this\.com(:\d+)?$',
+    r'^(https?://)?(\w+\.)?0x00000000\.ml(:\d+)?$',
+    r'^(https?://)?(\w+\.)?localhost(:\d+)?$',
+    r'^(https?://)?(\w+\.)?127.0.0.1(:\d+)?$',
+    r'^null$'
+)
 
 # Users' favorites and flaw book limits
 MAX_FAVO_SIZE = 100
