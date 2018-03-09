@@ -43,11 +43,11 @@ class QuestionList(models.Model):
             for QuestionClass in QeustionClasses:
                 logger.info('Updating question id list for %s' % QuestionClass.__name__)
                 questions = QuestionClass.objects.all()
-                newList = []
+                newList = {}
                 for category in Question.CATEGORY:
-                    newList.append([])
+                    newList[category.value] = []
                 for ques in questions:
-                    newList[ques.category - 1].append(ques.id)
+                    newList[ques.category].append(ques.id)
                 setattr(self, __class__.map[QuestionClass.__name__], newList)
         except KeyError:
             raise ValueError('Invalid class of question')

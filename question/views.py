@@ -48,10 +48,10 @@ class QuestionView():
         if kwargs['category']:
             try:
                 kwargs['category'] = int(kwargs['category'])
-                _list = questionList.getList(cls.QuestionClass)[kwargs['category'] - 1]
+                _list = questionList.getList(cls.QuestionClass)[str(kwargs['category'])]
             except ValueError:
                 _list = questionList.getList(cls.QuestionClass)
-            except IndexError:
+            except KeyError:
                 # return HttpResponseBadRequest('Invalid category')
                 return JsonResponse([], safe=False)
         else:

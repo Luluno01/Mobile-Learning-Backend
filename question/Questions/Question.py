@@ -9,10 +9,86 @@ logger = logging.getLogger("django")
 def __defaultList__():
     return []
 
+GRADE = [
+    {
+        'name': {
+            'en': 'primary',
+            'zh': '小学',
+        },
+        'subjects': [
+            '语文',
+            '数学',
+            '英语'
+        ]
+    },
+    {
+        'name': {
+            'en': 'junior',
+            'zh': '初中',
+        },
+        'subjects': [
+            '语文',
+            '数学',
+            '英语',
+            '物理',
+            '化学',
+            '生物',
+            '政治',
+            '历史',
+            '地理'
+        ]
+    },
+    {
+        'name': {
+            'en': 'senior',
+            'zh': '高中',
+        },
+        'subjects': [
+            '语文',
+            '数学',
+            '英语',
+            '物理',
+            '化学',
+            '生物',
+            '政治',
+            '历史',
+            '地理'
+        ]
+    },
+    {
+        'name': {
+            'en': 'undergraduate',
+            'zh': '本科',
+        },
+        'subjects': [
+            '高等数学',
+            '数据库系统概论',
+            '马克思主义基本原理概论'
+        ]
+    },
+    {
+        'name': {
+            'en': 'postgraduate',
+            'zh': '研究生',
+        },
+        'subjects': [
+            '高等数学',
+            '数据库系统概论',
+            '马克思主义基本原理概论'
+        ]
+    }
+]
+
+Coding = []
+for gradeIndex, grade in enumerate(GRADE):
+    for subjectIndex, subject in enumerate(grade['subjects']):
+        Coding.append((grade['name']['zh'] + '-' + subject, int('%d%d' % (gradeIndex + 1, subjectIndex))))
+
 class Question(models.Model):
     '''Base class for questions
     '''
-    CATEGORY = Enum('Category', ('Computer Science', 'Physics', 'Math', 'Chemistry'))
+
+    CATEGORY = Enum('Category', Coding)
     question_text = models.TextField()  # Question text
     # answer = models.IntegerField(default=0)  # Answer of this question
     resolution = models.TextField(default='')  # Resolution of this question
