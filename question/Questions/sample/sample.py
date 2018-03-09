@@ -1,7 +1,7 @@
 import json
 from question.models import OneChoiceQuestion
 
-with open('question/Questions/sample.json', encoding='utf8') as fp:
+with open('question/Questions/sample/sample.json', encoding='utf8') as fp:
     questions = json.load(fp)
 
 for question in questions:
