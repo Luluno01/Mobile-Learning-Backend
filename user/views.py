@@ -232,7 +232,7 @@ class Favorite:
             request.session['loginState'] = False
             request.session.flush()
             logger.info('Force logout.')
-            return HttpResponseUnauthorized('Login state error.')
+            return HttpResponseUnauthorized(ERR.LOGIN_STATE_ERROR)
 
     @staticmethod
     @requireLogin
@@ -256,7 +256,7 @@ class Favorite:
             request.session['loginState'] = False
             request.session.flush()
             logger.info('Force logout.')
-            return HttpResponseUnauthorized('Login state error.')
+            return HttpResponseUnauthorized(ERR.LOGIN_STATE_ERROR)
 
     @staticmethod
     @requireLogin
@@ -280,7 +280,7 @@ class Favorite:
             request.session['loginState'] = False
             request.session.flush()
             logger.info('Force logout.')
-            return HttpResponseUnauthorized('Login state error.')
+            return HttpResponseUnauthorized(ERR.LOGIN_STATE_ERROR)
 
     @staticmethod
     @csrf_exempt
@@ -317,7 +317,7 @@ class Flawbook:
             request.session['loginState'] = False
             request.session.flush()
             logger.info('Force logout.')
-            return HttpResponseUnauthorized('Login state error.')
+            return HttpResponseUnauthorized(ERR.LOGIN_STATE_ERROR)
 
     @staticmethod
     @requireLogin
@@ -341,7 +341,7 @@ class Flawbook:
             request.session['loginState'] = False
             request.session.flush()
             logger.info('Force logout.')
-            return HttpResponseUnauthorized('Login state error.')
+            return HttpResponseUnauthorized(ERR.LOGIN_STATE_ERROR)
 
     @staticmethod
     @requireLogin
@@ -365,7 +365,35 @@ class Flawbook:
             request.session['loginState'] = False
             request.session.flush()
             logger.info('Force logout.')
-            return HttpResponseUnauthorized('Login state error.')
+            return HttpResponseUnauthorized(ERR.LOGIN_STATE_ERROR)
+        except KeyError:
+            logger.error('Invalid session.')
+            request.session['loginState'] = False
+            request.session.flush()
+            logger.info('Force logout.')
+            return HttpResponseUnauthorized(ERR.LOGIN_STATE_ERROR)
+
+    @staticmethod
+    @requireLogin
+    @loginStateMaintainer
+    def getWeakness(request, **kwargs):
+        try:
+            user = User.objects.get(id=request.session['userId'])
+            logger.info('User found.')
+            # reqHandler = ReqHandler(request)
+            return JsonResponse(user.weakness, safe=False)
+        except User.DoesNotExist:
+            logger.info('User not found. Login state error.')
+            request.session['loginState'] = False
+            request.session.flush()
+            logger.info('Force logout.')
+            return HttpResponseUnauthorized(ERR.LOGIN_STATE_ERROR)
+        except KeyError:
+            logger.error('Invalid session.')
+            request.session['loginState'] = False
+            request.session.flush()
+            logger.info('Force logout.')
+            return HttpResponseUnauthorized(ERR.LOGIN_STATE_ERROR)
 
     @staticmethod
     @csrf_exempt
@@ -378,7 +406,7 @@ class Flawbook:
         method = request.method.lower()
         if method not in methods:
             return HttpResponseNotAllowed(['GET', 'PUT', 'DELETE'])
-        logger.info('flawbook type: ' + (kwargs['type'] or '') + 'id: ' + (kwargs['id'] or ''))
+        logger.info('flawbook type: ' + (kwargs['type'] or '') + ' id: ' + (kwargs['id'] or ''))
         # if reqHandler.getJson():
         #     if 'csrf' in reqHandler.json:
         #         return render(request, 'user/csrf.html')

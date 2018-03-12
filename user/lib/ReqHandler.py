@@ -67,6 +67,8 @@ class ERR():
     REQUIRE_LOGIN = 'Require login.'
     INVALID_OPERATION = 'Invalid operation.'
 
+    LOGIN_STATE_ERROR = 'Login state error.'
+
     # For login
     USERNAME_OR_PASSWORD_INCORRECT = 'Username or password incorrect.'
 

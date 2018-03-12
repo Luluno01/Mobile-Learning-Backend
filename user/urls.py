@@ -1,14 +1,15 @@
-from django.conf.urls import url, include
+from django.urls import path, re_path, include
 
 from . import views
 
 app_name = 'user'
 urlpatterns = [
-    url(r'state/$', views.state, name='state'),
-    url(r'^register/$', views.register, name='register'),
-    url(r'^login/$', views.login, name='login'),
-    url(r'logout/$', views.logout, name='logout'),
-    url(r'^reset/$', views.reset, name='reset'),
-    url(r'^favorite/((?P<type>\d+)/(?P<id>\d+)/)?$', views.Favorite.favorite, name='favorite'),
-    url(r'^flawbook/((?P<type>\d+)/(?P<id>\d+)/)?$', views.Flawbook.flawbook, name='flawbook')
+    path('state/', views.state, name='state'),
+    path('register/', views.register, name='register'),
+    path('login/', views.login, name='login'),
+    path('logout/', views.logout, name='logout'),
+    path('reset/', views.reset, name='reset'),
+    re_path(r'^favorite/((?P<type>\d+)/(?P<id>\d+)/)?$', views.Favorite.favorite, name='favorite'),
+    re_path(r'^flawbook/((?P<type>\d+)/(?P<id>\d+)/)?$', views.Flawbook.flawbook, name='flawbook'),
+    path('weakness/', views.Flawbook.getWeakness, name='weakness')
 ]

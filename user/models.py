@@ -1,4 +1,4 @@
-from django.contrib.postgres.fields import ArrayField
+from django.contrib.postgres.fields import ArrayField, JSONField
 from django.db import models
 from django.conf import settings
 from question.models import OneChoiceQuestion, OneChoiceChoice
@@ -6,6 +6,8 @@ from question.models import MultipleChoiceQuestion, MultipleChoiceChoice
 from question.models import TrueOrFalseQuestion
 from question.models import FillInQuestion
 from question.models import SubjectiveQuestion
+import logging
+logger = logging.getLogger("django")
 
 QUESTIONS = [
     OneChoiceQuestion,
@@ -24,6 +26,9 @@ import hashlib, random, string
 
 def __defaultList__():
     return []
+
+def __defaultDict__():
+    return {}
 
 class User(models.Model):
     username = models.CharField(max_length=50)  # login name
@@ -48,9 +53,14 @@ class User(models.Model):
                                      default=__defaultList__, size=2),
                           default=__defaultList__, size=MAX_FAVO_SIZE)  # List of flaws
     # [
-    #     {type: <Integer>, id: <Integer>},
-    #     {type: <Integer>, id: <Integer>},
+    #     [<type:Integer>, <id:Integer>],
+    #     [<type:Integer>, <id:Integer>],
     # ]
+    weakness = JSONField(default=__defaultDict__)  # Weakness
+    # {
+    #     <topicName:String>: <weight:Integer>,
+    #     ...
+    # }
 
     @staticmethod
     def newUser(username, saltedPassword, staticSalt):
@@ -121,7 +131,7 @@ class User(models.Model):
             self.flawbook = []
         # Validate specified question
         try:
-            QUESTIONS[quesType].objects.get(pk=quesId)
+            ques = QUESTIONS[quesType].objects.get(pk=quesId)
         except (KeyError, QUESTIONS[quesType].DoesNotExist):
             return False
         if len(self.favorites) >= MAX_FLAW_SIZE:
@@ -130,6 +140,11 @@ class User(models.Model):
             if [quesType, quesId] == question:  # Already added
                 return False
         self.flawbook.append([quesType, quesId])
+        for topic in ques.topic:
+            if topic in self.weakness:
+                self.weakness[topic] += 1
+            else:
+                self.weakness[topic] = 1
         self.save()
         return True
 
@@ -138,6 +153,17 @@ class User(models.Model):
             return True
         for questionIndex, question in enumerate(self.flawbook):
             if [quesType, quesId] == question:
+                try:
+                    ques = QUESTIONS[quesType].objects.get(pk=quesId)
+                except QUESTIONS[quesType].DoesNotExist:
+                    logger.warning('Question (type: %d, id: %d) doesn\'t exist.' % (quesType, quesId))
+                for topic in ques.topic:
+                    try:
+                        self.weakness[topic] -= 1
+                        if self.weakness[topic] <= 0:
+                            del self.weakness[topic]
+                    except KeyError:
+                        logger.warning('User with id %d has a broken weakness list.' % self.id)
                 del self.flawbook[questionIndex]
                 self.save()
                 return True
