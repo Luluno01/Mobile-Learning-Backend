@@ -73,6 +73,8 @@ class OneChoiceQuestion(ChoiceQuestion):
             answer.countInc()
             answer.save()
             correct = True
+        elif usersAnswer == 0:  # The user does not choose an answer
+            self.accuracy = answer.selection_count / (self.visit_count + 1)
         else:  # Wrong
             try:
                 _usersAnswer = OneChoiceChoice.objects.get(pk=usersAnswer, question=self)

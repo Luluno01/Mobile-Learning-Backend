@@ -39,7 +39,7 @@ urlpatterns = [
     re_path(r'^true-or-false-question/search/((?P<categories>\[[ %,\d]*?\])/)?((?P<topics>\[[\s\S]*?\])/)?((?P<question_text>[\s\S]*?)/)?', views.TrueOrFalseQuestionView.search),
     re_path(r'^true-or-false-question/new/((?P<category>\d+)/)?$', views.TrueOrFalseQuestionView.getNew),
     re_path(r'^true-or-false-question/hot/((?P<category>\d+)/)?$', views.TrueOrFalseQuestionView.getHot),
-    re_path(r'^true-or-false-question/validate/((?P<question>\d+)/)?((?P<answer>true|false|True|False)/)?$', views.TrueOrFalseQuestionView.validate),
+    re_path(r'^true-or-false-question/validate/((?P<question>\d+)/)?((?P<answer>true|false|True|False|0)/)?$', views.TrueOrFalseQuestionView.validate),
     # Multiple-choice question
     re_path(r'^multiple-choice-question/list/((?P<category>\d+)/)?$', views.MultipleChoiceQuestionView.getSimpleList),
     re_path(r'^multiple-choice-question/id-list/((?P<category>\d+)/)?$', views.MultipleChoiceQuestionView.getIdList),

@@ -81,12 +81,12 @@ class TrueOrFalseQuestion(Question):
         }
 
     def validate(self, usersAnswer, *args, **kwargs):
-        if type(usersAnswer) != bool:
+        if type(usersAnswer) != bool and usersAnswer != 0:
             raise ValueError('Invalid answer type')
         self.visit_count = F('visit_count') + 1
         self.visit_count_daily = F('visit_count_daily') + 1
         self.visit_count_weekly = F('visit_count_weekly') + 1
-        if self.answer == usersAnswer:
+        if self.answer is usersAnswer:
             self.correct_count = F('correct_count') + 1
             self.correct_count_daily = F('correct_count_daily') + 1
             self.correct_count_weekly = F('correct_count_weekly') + 1

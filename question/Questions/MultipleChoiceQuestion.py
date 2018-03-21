@@ -100,6 +100,8 @@ class MultipleChoiceQuestion(ChoiceQuestion):
             for ans in answers:
                 ans.countInc()
                 ans.save()
+        elif set(usersAnswer) == set([0]):  # The user does not choose an answer
+            self.accuracy = self.correct_count / (self.visit_count + 1)
         else:  # Wrong
             condition = Q(pk=usersAnswer[0])
             for answerIndex, answer in enumerate(usersAnswer):
