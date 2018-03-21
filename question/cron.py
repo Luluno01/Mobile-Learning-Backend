@@ -36,7 +36,7 @@ def quit(signum, frame):
 def trigger():
     import signal
     from threading import Timer
-    from datetime import datetime, timedelta
+    from django.utils.timezone import datetime, timedelta
     logger.info('Cron loaded')
 
     # Start cron
